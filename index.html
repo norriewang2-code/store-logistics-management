@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<title>网店后台物流管理</title>
+<style>
+:root{
+  --bg:#0d211b; --panel:#fff8ea; --card:#fffdf7; --ink:#20342d; --muted:#6e786f;
+  --green:#237044; --green2:#173c2b; --gold:#f1b43e; --orange:#d77a28; --red:#c0392b;
+  --blue:#2d6cdf; --line:#e6d0a2; --soft:#f7ead0; --shadow:0 18px 38px rgba(0,0,0,.26);
+}
+*{box-sizing:border-box;user-select:none;}
+body{margin:0;padding:18px;background:radial-gradient(circle at top,#315f4d 0,#142d25 48%,#07120f 100%);font-family:"Segoe UI",Roboto,"Microsoft YaHei",Arial,sans-serif;color:var(--ink);}
+.game-container{max-width:1480px;margin:0 auto;background:var(--panel);border-radius:30px;overflow:hidden;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.22);}
+.topbar{background:linear-gradient(135deg,#173d2a,#2b6548);color:#fff1d2;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.brand{display:flex;align-items:center;gap:14px;}
+.brand-icon{width:50px;height:50px;border-radius:17px;background:#ffd06c;color:#173d2a;display:grid;place-items:center;font-size:28px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.16);}
+.brand h1{font-size:1.26rem;margin:0;line-height:1.18;}
+.brand small{display:block;margin-top:5px;color:#d8efd8;font-weight:600;}
+.pill{background:rgba(8,30,20,.55);border:1px solid rgba(255,255,255,.16);padding:9px 15px;border-radius:999px;font-weight:850;}
+.dashboard{padding:16px 22px;background:#f4dfb9;display:grid;grid-template-columns:repeat(7,minmax(138px,1fr));gap:12px;border-bottom:1px solid var(--line);}
+.dash-card{background:linear-gradient(180deg,#fffef8,#fff2d5);border:1px solid #dfc697;border-radius:20px;padding:12px 14px;box-shadow:0 6px 14px rgba(93,63,20,.09);}
+.dash-card .label{font-size:.75rem;color:#6b5a37;font-weight:800;letter-spacing:.03em;}
+.dash-card .value{font-size:1.18rem;font-weight:950;margin-top:5px;color:#173d2a;white-space:nowrap;}
+.dash-card.good .value{color:var(--green);} .dash-card.danger .value{color:var(--red);} .dash-card.blue .value{color:var(--blue);}
+.round-board{padding:14px 22px;background:#fff1d2;border-bottom:1px solid var(--line);}
+.round-title{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px;font-weight:900;color:#4d3b1e;}
+.round-grid{display:grid;grid-template-columns:repeat(30,1fr);gap:5px;}
+.round-cell{height:34px;border-radius:10px;background:#fffaf0;border:1px solid #dec79a;display:grid;place-items:center;font-size:.78rem;font-weight:900;color:#785e2d;position:relative;}
+.round-cell.current{background:#ffd571;color:#173d2a;border-color:#b77b00;box-shadow:0 0 0 2px rgba(241,180,62,.18);}
+.round-cell.done.profit{background:#daf2de;color:#176333;border-color:#8bc99a;}
+.round-cell.done.loss{background:#ffe0dc;color:#a52b21;border-color:#eca098;}
+.round-cell.future{opacity:.72;}
+.main-panel{padding:22px;display:grid;grid-template-columns:minmax(380px,1fr) 390px;gap:18px;}
+.section-card{background:#fffaf0;border:1px solid #e2cfa5;border-radius:24px;padding:18px;box-shadow:0 7px 18px rgba(91,65,22,.08);margin-bottom:18px;}
+.section-title{margin:0 0 14px;display:flex;align-items:baseline;justify-content:space-between;gap:12px;color:#173d2a;}
+.section-title span{font-size:.78rem;color:#7b6c4c;font-weight:700;}
+.today-product{background:linear-gradient(180deg,#fffef8,#fff7e5);border-radius:22px;border:1px solid #e4d2a8;padding:16px;}
+.product-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+.product-name{font-size:1.45rem;font-weight:950;color:#1f392f;}
+.badge{display:inline-block;margin-left:8px;padding:4px 10px;border-radius:999px;background:#c79955;color:#fff;font-size:.76rem;vertical-align:middle;}
+.risk-badge{display:inline-block;background:#f3e1bc;border:1px solid #d5b06d;color:#74531b;padding:4px 8px;border-radius:999px;margin:3px 4px 0 0;font-size:.73rem;font-weight:800;}
+.product-metrics,.summary-grid{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:10px;margin-top:12px;}
+.metric,.summary-cell{background:#fff;border:1px solid #e4d2a8;border-radius:16px;padding:10px;}
+.metric b,.summary-cell b{display:block;color:#7a6a48;font-size:.76rem;margin-bottom:4px;}
+.metric strong,.summary-cell strong{font-size:1rem;color:#173d2a;}
+.hint-box{background:#fff3d7;border-left:6px solid var(--gold);border-radius:14px;padding:11px 12px;line-height:1.55;color:#5a4723;font-weight:750;margin-top:12px;}
+.logistics-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:14px;}
+.logi-card{background:#fff;border:1px solid #dec79a;border-radius:22px;padding:14px;transition:.12s linear;position:relative;overflow:hidden;}
+.logi-card:hover{transform:translateY(-3px);box-shadow:0 12px 20px rgba(81,54,18,.12);border-color:var(--gold);}
+.logi-card.premium{box-shadow:inset 5px 0 0 #d59720;} .logi-card.bulk{box-shadow:inset 5px 0 0 #2d6cdf;} .logi-card.economy{box-shadow:inset 5px 0 0 #7a8b79;} .logi-card.standard{box-shadow:inset 5px 0 0 #4f9c69;}
+.logi-name{font-weight:950;font-size:1.18rem;color:#173d2a;margin-bottom:8px;}
+.logi-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.tag{font-size:.70rem;font-weight:900;border-radius:999px;padding:4px 8px;background:#eee2c6;color:#59471e;}
+.tag.good{background:#d9f2de;color:#176333;} .tag.warn{background:#fff0c2;color:#875900;} .tag.bad{background:#ffe0dc;color:#a42a21;} .tag.blue{background:#dce7ff;color:#244f9e;}
+.logi-desc{font-size:.78rem;color:#5b513f;line-height:1.45;margin:5px 0;}
+.btn-bid,.btn-submit,.confirm-day-btn,.back-btn,.reset-btn{border:none;border-radius:999px;padding:10px 14px;font-weight:950;cursor:pointer;}
+.btn-bid{width:100%;margin-top:10px;background:var(--gold);color:#3a2a09;} .btn-bid:hover{filter:brightness(1.04);}
+.confirm-panel{text-align:center;background:#fff5dc;border:1px solid #e2cfa5;border-radius:24px;padding:20px;margin-bottom:18px;}
+.confirm-day-btn{background:var(--green);color:#fff;margin:6px;} .back-btn{background:#7f8c8d;color:#fff;margin:6px;} .reset-btn{background:#b4642c;color:#fff;}
+.analysis-list{display:grid;gap:10px;}
+.analysis-item{background:#fff;border:1px solid #e4d2a8;border-radius:16px;padding:12px;line-height:1.55;font-size:.88rem;}
+.history-log{background:#fff;border:1px solid #e4d2a8;border-radius:18px;padding:12px;min-height:150px;max-height:260px;overflow:auto;font-family:Consolas,monospace;font-size:.78rem;line-height:1.6;}
+.live-score-empty{background:#fff;border:1px solid #e4d2a8;border-radius:16px;padding:16px;color:#7b6c4c;font-size:.88rem;}
+.live-score-total{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1px solid #e4d2a8;border-radius:18px;padding:14px;}
+.live-score-total b{display:block;color:#4d3b1e;font-size:.9rem;}.live-score-total small{display:block;margin-top:5px;color:#7b6c4c;font-size:.75rem;line-height:1.4;}
+.live-score-total strong{color:#173d2a;font-size:1.8rem;white-space:nowrap;}.live-score-total em{font-size:.9rem;font-style:normal;margin-left:3px;}
+.live-score-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px;}
+.live-score-item{background:#fff;border:1px solid #e4d2a8;border-radius:16px;padding:10px;min-width:0;}
+.live-score-item b{display:block;color:#7a6a48;font-size:.75rem;line-height:1.4;}.live-score-item strong{display:block;margin-top:5px;color:#173d2a;font-size:1rem;}
+.modal,.final-result-modal,.daily-summary-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.68);z-index:1000;align-items:center;justify-content:center;padding:18px;}
+.modal-card,.summary-card,.final-card{width:min(720px,94vw);max-height:90vh;overflow:auto;background:#fff7e8;border-radius:28px;padding:22px;box-shadow:var(--shadow);}
+.summary-card,.final-card{text-align:center;}
+.modal-card label{display:block;margin-top:12px;margin-bottom:6px;font-weight:900;color:#4d3b1e;}
+.modal-card select,.modal-card input{width:100%;padding:10px;border-radius:16px;border:1px solid #cdb982;background:#fff;}
+.close-modal{float:right;font-size:28px;cursor:pointer;font-weight:900;}
+.score-breakdown{background:#fff;border:1px solid #e4d2a8;border-radius:18px;padding:12px;text-align:left;line-height:1.7;margin:12px 0;}
+.floating-toast{position:fixed;right:20px;bottom:20px;z-index:2000;background:#16241c;color:#ffecb3;border-left:8px solid var(--gold);padding:12px 16px;border-radius:18px;box-shadow:0 12px 24px rgba(0,0,0,.32);max-width:380px;animation:fadeInOut 3.6s ease forwards;line-height:1.5;font-weight:800;}
+@keyframes fadeInOut{0%{opacity:0;transform:translateX(40px)}10%{opacity:1;transform:translateX(0)}90%{opacity:1}100%{opacity:0;transform:translateX(40px)}}
+
+.final-dashboard{margin-top:14px;text-align:left;background:#fff;border:1px solid #e4d2a8;border-radius:20px;padding:14px;}
+.final-kpi-grid{display:grid;grid-template-columns:repeat(2,minmax(160px,1fr));gap:10px;margin-top:12px;}
+.final-kpi{background:#fffaf0;border:1px solid #ead6aa;border-radius:16px;padding:12px;}
+.final-kpi b{display:block;color:#7a6a48;font-size:.78rem;margin-bottom:5px;}
+.final-kpi strong{font-size:1.12rem;color:#173d2a;}
+.final-kpi .red{color:#c0392b}.final-kpi .green{color:#237044}.final-kpi .blue{color:#2d6cdf}
+.final-note{margin-top:12px;padding:10px;border-radius:14px;background:#fff3d7;color:#5a4723;font-weight:800;line-height:1.55;}
+.final-review{margin-top:14px;text-align:left;background:#fff;border:1px solid #e4d2a8;border-radius:20px;padding:14px;}
+.final-review h3{margin:0 0 10px;color:#173d2a;font-size:1.05rem;}
+.final-review-item{padding:10px 12px;margin-top:8px;background:#fffaf0;border:1px solid #ead6aa;border-radius:14px;line-height:1.55;font-size:.88rem;color:#4d3b1e;}
+.final-review-item b{color:#173d2a;}
+
+@media(max-width:1200px){.dashboard{grid-template-columns:repeat(3,1fr)}.main-panel{grid-template-columns:1fr}.round-grid{grid-template-columns:repeat(15,1fr)}}
+@media(max-width:650px){body{padding:8px}.dashboard{grid-template-columns:repeat(2,1fr);padding:12px}.main-panel{padding:12px}.product-metrics,.summary-grid{grid-template-columns:1fr}.round-grid{grid-template-columns:repeat(10,1fr)}.brand h1{font-size:1.05rem}}
+</style>
+</head>
+<body>
+<div class="game-container">
+  <div class="topbar">
+    <div class="brand"><div class="brand-icon">🏪</div><div><h1>网店后台物流管理</h1><small id="shopNameDisplay">未开店 · 等待开始</small></div></div>
+    <div class="pill">正式比赛模式｜隐藏决策提示｜每次打开随机生成赛题</div>
+  </div>
+  <div class="dashboard">
+    <div class="dash-card good"><div class="label">💰 资金</div><div class="value"><span id="money">0</span> 元</div></div>
+    <div class="dash-card"><div class="label">😊 满意度</div><div class="value"><span id="satisfaction">100</span> / 100</div></div>
+    <div class="dash-card blue"><div class="label">📅 进度</div><div class="value">第 <span id="day">0</span> / 30 天</div></div>
+    <div class="dash-card"><div class="label">📦 今日订单</div><div class="value"><span id="todayQty">0</span> 件</div></div>
+    <div class="dash-card"><div class="label">📈 预计毛利</div><div class="value"><span id="grossProfitDash">0</span> 元</div></div>
+    <div class="dash-card"><div class="label">⚖️ 总重量</div><div class="value"><span id="totalWeightDash">0</span> kg</div></div>
+    <div class="dash-card"><div class="label">🎲 随机批次</div><div class="value"><span id="runIdDash">-</span></div></div>
+  </div>
+  <div class="round-board">
+    <div class="round-title"><span>30天赛程看板</span><span id="roundBoardTip">完成后显示每日盈利/亏损状态</span></div>
+    <div class="round-grid" id="roundGrid"></div>
+  </div>
+  <div class="main-panel">
+    <div class="left-panel">
+      <div class="section-card"><h3 class="section-title">今日订单 <span>正式比赛订单信息</span></h3><div class="today-product" id="todayProductCard"></div></div>
+      <div class="section-card" id="logisticsSection"><h3 class="section-title">🚚 选择物流方案 <span>仅显示价格与时效</span></h3><div class="logistics-grid" id="logisticsGrid"></div></div>
+      <div id="confirmSection" class="confirm-panel" style="display:none;"><h3>方案已提交</h3><p>确认结算本日，或返回重新选择物流与包装。</p><button class="confirm-day-btn" id="confirmDayBtn">✅ 确认运营 · 结算本日</button><button class="back-btn" id="backToSelectBtn">🔙 返回重新选择</button></div>
+    </div>
+    <div class="right-panel">
+      <div class="section-card"><h3 class="section-title">📋 每日结算记录 <span>最近15天</span></h3><div class="history-log" id="historyLog">等待开始...</div></div>
+      <div class="section-card"><h3 class="section-title">📊 实时评分 <span id="liveScoreRound">完成首轮后更新</span></h3><div id="liveScoreContent" class="live-score-empty" aria-live="polite">完成首轮运营后显示评分。</div></div>
+      <div class="section-card"><h3 class="section-title">🎮 竞赛操作 <span>重新开始会生成新订单</span></h3><div class="analysis-list">
+        <div class="analysis-item"><b>比赛说明：</b>请在30天内完成网店运营决策，系统将根据资金、满意度和风险表现统计最终成绩。</div>
+        <div class="analysis-item"><b>正式比赛：</b>页面不显示商品推荐包装、物流擅长方向或决策提示，参赛者需自行判断。</div>
+      </div><div style="margin-top:12px;"><button class="reset-btn" id="resetGameBtn">🔄 重新开始竞赛</button></div></div>
+    </div>
+  </div>
+  <footer style="text-align:center;background:#d1bb85;padding:13px;font-size:.78rem;">建议评分：资金60% + 满意度30% + 风险控制10%。每次打开或重新开始都会生成不同30天订单。</footer>
+</div>
+
+<div id="startModal" class="modal" style="display:flex;"><div class="modal-card"><h2>🏪 网店后台物流管理</h2><p style="line-height:1.6;color:#5f543d;">请完成30天网店模拟运营比赛。每轮需提交物流、包装、报价和包邮策略。</p><label>店铺名称：</label><input type="text" id="shopNameInput" value="优品小栈" /><label>初始资金（元）：</label><input type="number" id="startMoney" value="100000" step="1000" /><button class="btn-submit" id="startGameBtn">开始经营</button></div></div>
+
+<div id="bidModal" class="modal"><div class="modal-card"><span class="close-modal" id="closeModalBtn">&times;</span><h3 id="modalLogiName">物流公司</h3><label>📦 运送方式：</label><select id="shipMethod"><option value="standard">标快</option><option value="regular">普快</option><option value="priority">特快</option></select><label>⚖️ 计价方式：</label><select id="priceMethod"><option value="weight">按重量（元/kg）</option><option value="perpiece">按件（元/件）</option></select><label>💰 报价 <span id="minPriceTip" style="font-size:.75rem;color:#775d26;"></span>：</label><input type="number" id="bidPrice" step="0.5" value="5" /><div id="lowPriceWarning" style="color:#a84a00;font-size:.78rem;line-height:1.45;"></div><label>🎁 包邮策略：</label><select id="isFreeShip"><option value="yes">包邮</option><option value="no">不包邮</option></select><label>🗺️ 偏远附加费：</label><select id="remoteSurcharge"><option value="yes">启用</option><option value="no">不启用</option></select><label>📦 包装方式：</label><select id="packType"><option value="" selected disabled>请选择包装方式</option><option value="bag">简易袋</option><option value="carton">标准纸箱</option><option value="eco">绿色环保包装</option><option value="foam">泡沫箱</option><option value="shock">防震气柱</option><option value="cold">冷链保温箱</option><option value="wooden">木架/木箱</option></select><button class="btn-submit" id="submitBidBtn">提交方案 ➡️</button></div></div>
+
+<div id="dailySummaryModal" class="daily-summary-modal"><div class="summary-card"><h3>📊 经营结算</h3><div id="summaryContent"></div><button id="closeSummaryBtn" class="btn-submit">继续运营</button></div></div>
+<div id="finalModal" class="final-result-modal"><div class="final-card"><h2 id="finalTitle">🏆 竞赛结束 🏆</h2><p id="finalShopName"></p><p id="finalProfit"></p><p id="finalSatisfaction"></p><div id="finalScore"></div><div id="finalReview"></div><button id="copyResultBtn" class="btn-submit" style="margin:6px;">📋 复制成绩</button><button id="closeFinalBtn" class="reset-btn" style="margin:6px;">重新开始</button></div></div>
+
+<script>
+const TOTAL_DAYS = 30;
+const CATEGORY_RULES = {
+  "生鲜食品": {urgency:"urgent", weightBase:0.9, priceBase:48, costRate:[0.70,0.82], qty:[30,180], marginName:"中毛利/高时效", riskTags:["易损耗","冷链优先"]},
+  "数码电子": {urgency:"urgent", weightBase:0.55, priceBase:1800, costRate:[0.89,0.96], qty:[6,36], marginName:"低毛利/高客单", riskTags:["高价值","丢损赔付高"]},
+  "服装鞋帽": {urgency:"normal", weightBase:0.35, priceBase:130, costRate:[0.55,0.72], qty:[60,260], marginName:"中毛利/多件", riskTags:["多件订单","退换风险"]},
+  "家居日用": {urgency:"normal", weightBase:1.1, priceBase:60, costRate:[0.65,0.80], qty:[40,220], marginName:"薄利/偏重", riskTags:["运费敏感"]},
+  "美妆个护": {urgency:"normal", weightBase:0.25, priceBase:170, costRate:[0.58,0.76], qty:[30,160], marginName:"中高毛利/轻小件", riskTags:["破损风险"]},
+  "图书文具": {urgency:"relax", weightBase:0.55, priceBase:38, costRate:[0.62,0.80], qty:[80,300], marginName:"薄利/重订单", riskTags:["重量累积"]},
+  "运动户外": {urgency:"normal", weightBase:1.3, priceBase:220, costRate:[0.60,0.78], qty:[20,120], marginName:"中毛利/体积较大", riskTags:["体积重量"]},
+  "母婴用品": {urgency:"urgent", weightBase:0.7, priceBase:95, costRate:[0.60,0.78], qty:[30,160], marginName:"信任敏感", riskTags:["时效敏感"]},
+  "宠物用品": {urgency:"normal", weightBase:1.6, priceBase:55, costRate:[0.68,0.84], qty:[50,240], marginName:"薄利/重量敏感", riskTags:["重量累积"]},
+  "家具大件": {urgency:"relax", weightBase:18, priceBase:1300, costRate:[0.68,0.82], qty:[2,14], marginName:"高履约成本", riskTags:["大件","安装/破损"]}
+};
+const productNames = {
+  "生鲜食品": ["三文鱼刺身","安格斯牛排","现杀土鸡","智利车厘子","挪威北极鳕鱼","活冻黑虎虾","阳澄湖大闸蟹","有机芦笋","云南野生菌","澳洲龙虾","新西兰奇异果","泰国金枕头榴莲","海南妃子笑荔枝","山东大樱桃","内蒙草原羊肉","高邮咸鸭蛋","土鸡蛋30枚","冷冻巴沙鱼柳","厄瓜多尔白虾"],
+  "数码电子": ["小米13手机","苹果17Pro","华为Mate70","索尼降噪耳机","戴尔XPS笔记本","大疆无人机Mini4","佳能R6相机","任天堂Switch2","漫步者音响","罗技机械键盘","群晖NAS","Redmi电视","联想拯救者Y9000","华硕ROG掌机","三星S24","OPPO Find X8","vivo X200","荣耀Magic6","小米手环9","GoPro HERO12"],
+  "服装鞋帽": ["李宁超轻跑鞋","雅戈尔衬衫","波司登羽绒服","阿迪达斯运动裤","耐克Air Force","优衣库摇粒绒","太平鸟连衣裙","安踏篮球鞋","鸿星尔克卫衣","海澜之家西服","骆驼冲锋衣","迪卡侬登山鞋","UR针织衫","ZARA外套","GXG夹克","森马牛仔裤","以纯T恤","回力帆布鞋","匹克态极","瑜伽裤"],
+  "家居日用": ["南极人四件套","双立人刀具","苏泊尔炒锅","飞科剃须刀","小米扫地机器人","美的电饭煲","九阳破壁机","戴森吹风机","网易严选乳胶枕","京东京造毛巾","蓝月亮洗衣液","维达卷纸","心相印抽纸","妙洁保鲜袋","茶花收纳箱","恒源祥毛毯","富安娜蚕丝被","洁丽雅浴巾","天堂伞","公牛插座"],
+  "美妆个护": ["兰蔻小黑瓶","雅诗兰黛小棕瓶","SK-II神仙水","欧莱雅紫熨斗","玉兰油大红瓶","自然堂冰肌水","完美日记口红","花西子散粉","珂润面霜","芙丽芳丝洗面奶","资生堂红腰子","悦木之源菌菇水","科颜氏白泥","倩碧黄油","CPB隔离","MAC子弹头","汤姆福特香水","3CE眼影","润百颜次抛","敷尔佳面膜"],
+  "图书文具": ["三体全集","新华字典","五年高考三年模拟","哈利波特套装","平凡的世界","活着","明朝那些事儿","百年孤独","解忧杂货店","白夜行","银河帝国","时间简史","人类群星闪耀时","万历十五年","红楼梦","西游记","水浒传","三国演义","晨光中性笔","得力笔记本"],
+  "运动户外": ["尤尼克斯羽毛球拍","威尔胜篮球","迪卡侬帐篷","探路者登山杖","牧高笛睡袋","骆驼折叠椅","北面冲锋衣","哥伦比亚徒步鞋","始祖鸟背包","捷安特山地车","美利达公路车","Keep瑜伽垫","李宁跳绳","探险者吊床","火枫炉头","神火头灯","洛克兄弟骑行手套","羚羊护膝","迈金骑行台","凯乐石攀岩鞋"],
+  "母婴用品": ["贝亲奶瓶","帮宝适纸尿裤","好孩子婴儿车","十月结晶待产包","babycare湿巾","可优比餐椅","费雪安抚海马","澳乐围栏","美德乐吸奶器","新安怡辅食机","爱他美奶粉","美赞臣蓝臻","雀巢能恩","嘉宝米粉","小皮果泥","可么多么奶嘴","babycare腰凳","好孩子安全座椅","蒂爱浴盆","如山恒温调奶器"],
+  "宠物用品": ["麦富迪猫粮","皇家狗粮","卫仕化毛膏","小佩智能饮水机","pidan猫砂","爱丽丝狗笼","纽顿狗粮","渴望猫粮","巅峰罐头","红狗营养膏","福莱恩驱虫药","卫仕钙片","嬉皮狗牵引绳","憨憨乐园猫爬架","华元宠物窝","疯狂的小狗零食","里兜猫砂","未卡猫抓板","大宠爱驱虫","波奇网磨牙棒"],
+  "家具大件": ["顾家家居沙发","全友家私床","林氏木业茶几","源氏木语餐桌","喜临门床垫","芝华仕头等舱","左右沙发","曲美电视柜","联邦椅","宜家帕克斯衣柜","索菲亚定制柜","欧派橱柜","箭牌浴室柜","九牧智能马桶","恒洁花洒","TOTO卫浴","雷士吸顶灯","欧普照明","大自然实木地板","圣象复合地板"]
+};
+const PACK_TYPES = {
+  bag:{name:"简易袋", materialFactor:0.6, protection:0.55, satBase:0, desc:"低成本，适合服装轻小件"},
+  carton:{name:"标准纸箱", materialFactor:1.0, protection:0.72, satBase:0, desc:"通用包装，适合普通商品"},
+  eco:{name:"绿色环保包装", materialFactor:1.4, protection:0.76, satBase:2, desc:"成本较高，客户感知更好，满意度增加"},
+  foam:{name:"泡沫箱", materialFactor:1.0, protection:0.86, satBase:1, desc:"适合易损、部分生鲜"},
+  shock:{name:"防震气柱", materialFactor:0.8, protection:0.93, satBase:1, desc:"适合数码、高价值、易碎商品"},
+  cold:{name:"冷链保温箱", materialFactor:1.4, protection:0.94, satBase:1, desc:"适合生鲜冷链"},
+  wooden:{name:"木架/木箱", materialFactor:1.2, protection:0.96, satBase:1, desc:"适合大件、重货、骑行台、家具"}
+};
+const RAW_LOGISTICS = {
+  sf:{name:"顺丰速运", tier:"premium", basePriceWeight:22, basePricePiece:16, minPriceWeight:18, minPricePiece:12, serviceExpertise:["生鲜食品","数码电子","母婴用品","高时效"], costBestFor:["高价值","高时效","小批量"], avoidFor:["薄利多销","超重/大批量"], baseDays:1.1, delayProb:0.012, lossProb:0.002, damageProb:0.006, earlyProb:0.34, security:0.93, speedPower:1.35},
+  jd:{name:"京东物流", tier:"premium", basePriceWeight:15, basePricePiece:11, minPriceWeight:11.5, minPricePiece:8.5, serviceExpertise:["数码电子","家居日用","母婴用品"], costBestFor:["高价值","中小件","仓配稳定"], avoidFor:["低客单大批量"], baseDays:1.8, delayProb:0.035, lossProb:0.007, damageProb:0.012, earlyProb:0.22, security:0.86, speedPower:1.12},
+  ems:{name:"EMS", tier:"standard", basePriceWeight:13, basePricePiece:9.5, minPriceWeight:10.5, minPricePiece:7.5, serviceExpertise:["图书文具","母婴用品","偏远地区"], costBestFor:["覆盖稳定","偏远地区"], avoidFor:["强时效生鲜"], baseDays:3, delayProb:0.055, lossProb:0.012, damageProb:0.018, earlyProb:0.12, security:0.74, speedPower:0.75},
+  zto:{name:"中通快递", tier:"standard", basePriceWeight:6.2, basePricePiece:4.3, minPriceWeight:5, minPricePiece:3.4, serviceExpertise:["服装鞋帽","美妆个护","家居日用"], costBestFor:["轻小件","多件订单"], avoidFor:["高价值裸寄","冷链"], baseDays:3.4, delayProb:0.12, lossProb:0.016, damageProb:0.027, earlyProb:0.07, security:0.60, speedPower:0.55},
+  yto:{name:"圆通速递", tier:"standard", basePriceWeight:6.0, basePricePiece:4.2, minPriceWeight:4.8, minPricePiece:3.3, serviceExpertise:["服装鞋帽","美妆个护","图书文具"], costBestFor:["轻小件","成本均衡"], avoidFor:["高价值精密电子"], baseDays:3.5, delayProb:0.13, lossProb:0.017, damageProb:0.030, earlyProb:0.07, security:0.58, speedPower:0.50},
+  sto:{name:"申通快递", tier:"economy", basePriceWeight:5.4, basePricePiece:3.8, minPriceWeight:4.2, minPricePiece:2.9, serviceExpertise:["服装鞋帽","宠物用品"], costBestFor:["低客单","大批量"], avoidFor:["高价值","强时效"], baseDays:4.1, delayProb:0.16, lossProb:0.022, damageProb:0.034, earlyProb:0.045, security:0.48, speedPower:0.25},
+  yunda:{name:"韵达快递", tier:"economy", basePriceWeight:5.2, basePricePiece:3.6, minPriceWeight:4, minPricePiece:2.8, serviceExpertise:["图书文具","宠物用品","服装鞋帽"], costBestFor:["低成本","非急件"], avoidFor:["生鲜","高价值"], baseDays:4.2, delayProb:0.18, lossProb:0.026, damageProb:0.038, earlyProb:0.04, security:0.45, speedPower:0.20},
+  jt:{name:"极兔速递", tier:"economy", basePriceWeight:4.5, basePricePiece:3.0, minPriceWeight:3.5, minPricePiece:2.4, serviceExpertise:["服装鞋帽","图书文具"], costBestFor:["极低成本","低价多件"], avoidFor:["高价值","易碎"], baseDays:4.8, delayProb:0.24, lossProb:0.040, damageProb:0.055, earlyProb:0.025, security:0.35, speedPower:0.05},
+  debon:{name:"德邦快递", tier:"bulk", basePriceWeight:8.2, basePricePiece:9.5, minPriceWeight:6.4, minPricePiece:7.2, serviceExpertise:["家具大件","运动户外","家居日用","重货"], costBestFor:["重货","大件","托盘"], avoidFor:["轻小薄利件"], baseDays:3.1, delayProb:0.085, lossProb:0.012, damageProb:0.020, earlyProb:0.09, security:0.68, speedPower:0.45}
+};
+let productLibrary=[], LOGISTICS=JSON.parse(JSON.stringify(RAW_LOGISTICS)), consecutiveMiss={}, initialMoney=100000, currentBidId=null, priceIncreaseFlag=false;
+let game={shopName:"", money:0, satisfaction:100, currentDay:1, finished:false, failed:false, dailyLogs:[], todayProduct:null, todayQty:0, todayCustomerRegion:"normal", pendingBid:null, awaitingConfirm:false, scenario:[], roundResults:[], correctStreak:0, totalProfit:0, lossDays:0, noFreeShipDays:0, damageEvents:0, satisfactionDebt:0, runId:""};
+function randomInt(min,max){return Math.floor(Math.random()*(max-min+1))+min;} function randFloat(min,max){return min+Math.random()*(max-min);} function yuan(n){return Math.round(n).toLocaleString("zh-CN");} function pct(n){return (n*100).toFixed(1)+"%";} function randomRegion(){return Math.random()<0.16?"remote":"normal";} function packName(id){return PACK_TYPES[id]?.name || id;}
+function makeRunId(){const arr=new Uint32Array(1); if(window.crypto&&crypto.getRandomValues) crypto.getRandomValues(arr); else arr[0]=Math.floor(Math.random()*1e9); return (Date.now().toString(36)+arr[0].toString(36)).slice(-7).toUpperCase();}
+function showToast(msg,isWarning=false){const div=document.createElement("div");div.className="floating-toast";if(isWarning)div.style.borderLeftColor="#c0392b";div.innerHTML=msg;document.body.appendChild(div);setTimeout(()=>div.remove(),3600);}
+function nameContains(name, words){return words.some(w=>name.includes(w));}
+const PACK_BASE_COST={A:2,B:0.8,C:0.3};
+function getPackClass(product){
+  if(["数码电子","美妆个护"].includes(product.category)) return "A";
+  if(["家居日用","家具大件"].includes(product.category)) return "C";
+  return "B";
+}
+function getQtyShareFactor(qty){return qty<=5?1.05:qty<=20?1:qty<=100?0.9:0.85;}
+function getRecommendedPack(product){
+  const name=product.name, cat=product.category, w=product.weightPerUnit;
+  if(cat==="生鲜食品") return "cold";
+  if(cat==="数码电子" || cat==="美妆个护" || isHighValue(product)) return "shock";
+  if(cat==="家具大件" || w>=10 || nameContains(name,["骑行台","山地车","公路车","电视","扫地机器人","安全座椅","婴儿车","餐椅","围栏","猫爬架","狗笼"])) return "wooden";
+  if(cat==="数码电子" || nameContains(name,["相机","手机","笔记本","无人机","耳机","音响","NAS","掌机","Switch","GoPro"])) return "shock";
+  if(nameContains(name,["香水","神仙水","小黑瓶","小棕瓶","红腰子","菌菇水","口红","粉","隔离","面霜","面膜","洗面奶"])) return "shock";
+  if(cat==="服装鞋帽") return "bag";
+  if(cat==="图书文具") return product.weightPerUnit*100>60 ? "carton" : "bag";
+  if(cat==="宠物用品" && w>1.2) return "carton";
+  return "carton";
+}
+function tuneProduct(name, cat, price, weight){
+  let extraCostRate=null, tags=[];
+  if(name.includes("迈金骑行台")){price=1200*randFloat(.85,1.15);weight=18;extraCostRate=[.93,.96];tags.push("大件重货","木架优先");}
+  if(name.includes("山地车")||name.includes("公路车")){price*=randFloat(4.0,6.5);weight=13*randFloat(.85,1.25);extraCostRate=[.78,.88];tags.push("大件","木架优先");}
+  if(name.includes("Redmi电视")){price*=randFloat(.85,1.2);weight=16*randFloat(.85,1.2);extraCostRate=[.90,.95];tags.push("大屏易损","木架优先");}
+  if(name.includes("苹果")||name.includes("华为")||name.includes("三星")||name.includes("戴尔")||name.includes("佳能")){price*=randFloat(1.8,3.2);extraCostRate=[.91,.97];tags.push("高价值低毛利");}
+  if(name.includes("索尼")){price*=randFloat(1.0,1.45);extraCostRate=[.88,.95];tags.push("高价值低毛利");}
+  if(name.includes("小米手环")){price*=.28;extraCostRate=[.76,.86];}
+  if(name.includes("群晖")||name.includes("无人机")||name.includes("ROG")){price*=randFloat(1.3,2.1);extraCostRate=[.90,.96];tags.push("高价值低毛利");}
+  if(name.includes("天堂伞")) weight=.5;
+  if(cat==="家具大件") weight=Math.max(12,weight);
+  return {price,weight,extraCostRate,tags};
+}
+function buildProductLibrary(){
+  productLibrary=[];
+  Object.entries(productNames).forEach(([cat,names])=>{
+    const r=CATEGORY_RULES[cat];
+    names.forEach(name=>{
+      let price=r.priceBase*randFloat(.72,1.45), weight=r.weightBase*randFloat(.65,1.45);
+      const tuned=tuneProduct(name,cat,price,weight); price=tuned.price; weight=tuned.weight;
+      const rateRange=tuned.extraCostRate||r.costRate; const costRate=randFloat(rateRange[0],rateRange[1]);
+      const p={name,category:cat,urgency:r.urgency,weightPerUnit:weight,pricePerUnit:price,costPerUnit:price*costRate,grossMarginRate:1-costRate,marginName:r.marginName,riskTags:[...r.riskTags,...tuned.tags]};
+      p.recPack=getRecommendedPack(p);
+      productLibrary.push(p);
+    });
+  });
+  updatePackAudit();
+}
+function updatePackAudit(){
+  const counts={}; productLibrary.forEach(p=>{counts[p.recPack]=(counts[p.recPack]||0)+1;});
+  return counts;
+}
+function getOrderQty(product){
+  const [min,max]=CATEGORY_RULES[product.category].qty;
+  let qty=randomInt(min,max);
+  if(product.name.includes("迈金骑行台")) qty=randomInt(35,95);
+  else if(product.weightPerUnit>=10 && product.category!=="家具大件") qty=randomInt(8,55);
+  else if(product.pricePerUnit>5000) qty=randomInt(3,14);
+  else if(product.pricePerUnit>2500) qty=randomInt(5,24);
+  else if(product.category==="家具大件") qty=randomInt(min,max);
+  return qty;
+}
+function createScenario(){
+  const scenario=[];
+  for(let i=0;i<TOTAL_DAYS;i++){
+    const p={...productLibrary[Math.floor(Math.random()*productLibrary.length)]};
+    scenario.push({product:p,qty:getOrderQty(p),region:randomRegion()});
+  }
+  return scenario;
+}
+function loadCurrentDay(){
+  const o=game.scenario[game.currentDay-1];
+  game.todayProduct={...o.product}; game.todayQty=o.qty; game.todayCustomerRegion=o.region;
+  showToast(`🎲 第${game.currentDay}天订单：${game.todayProduct.name} × ${game.todayQty}件。`, false);
+}
+function getProductEconomics(product,qty){const salesRevenue=product.pricePerUnit*qty, productCost=product.costPerUnit*qty, grossProfit=salesRevenue-productCost, totalWeight=product.weightPerUnit*qty; return {salesRevenue,productCost,grossProfit,totalWeight,grossMarginRate:grossProfit/salesRevenue};}
+function isLowMargin(product){return product.grossMarginRate<0.18 || product.pricePerUnit<80;} function isHighValue(product){return product.pricePerUnit>=800 || product.category==="数码电子";} function isHeavyOrder(product,qty){return product.weightPerUnit*qty>120 || product.weightPerUnit>=10;}
+function isLargeProduct(product){
+  return product.category==="家具大件" || (product.riskTags||[]).some(tag=>tag.includes("大件")) || nameContains(product.name,["骑行台","山地车","公路车","电视","扫地机器人","安全座椅","婴儿车","餐椅","围栏","猫爬架","狗笼"]);
+}
+function getBaseServiceFit(logistics,product,qty){
+  const heavy=isHeavyOrder(product,qty), high=isHighValue(product), fresh=product.category==="生鲜食品";
+  const expert=logistics.serviceExpertise.includes(product.category) || (heavy&&logistics.serviceExpertise.includes("重货"));
+  if(logistics.tier==="bulk"&&heavy) return {level:"strong", severity:0, handlingSat:2, riskMult:.72, text:"大件/重货服务适配强"};
+  if(expert) return {level:"strong", severity:0, handlingSat:1, riskMult:.80, text:"品类服务适配强"};
+  if(heavy && logistics.tier!=="bulk") return {level:"major", severity:2, handlingSat:-4, riskMult:1.55, text:"明显错配：大件/重货未选大件专线"};
+  if(fresh&&logistics.tier!=="premium") return {level:"critical", severity:3, handlingSat:-7, riskMult:1.95, text:"严重错配：生鲜未选高时效/高稳定服务"};
+  if(logistics.tier==="economy"&&high) return {level:"critical", severity:3, handlingSat:-7, riskMult:2.05, text:"严重错配：高价值订单使用低价高风险物流"};
+  if(product.urgency==="urgent"&&logistics.tier==="economy") return {level:"major", severity:2, handlingSat:-5, riskMult:1.70, text:"明显错配：紧急订单使用慢速低价物流"};
+  if(logistics.tier==="premium" && (high||product.urgency==="urgent")) return {level:"ok", severity:0, handlingSat:1, riskMult:.90, text:"高时效/高价值服务可接受"};
+  if(logistics.tier==="bulk"&&!heavy) return {level:"minor", severity:1, handlingSat:-2, riskMult:1.18, text:"轻微错配：轻小件选择大件物流，体验一般"};
+  return {level:"neutral", severity:0, handlingSat:0, riskMult:1.05, text:"服务适配中性"};
+}
+function getServiceFit(logistics,product,qty,shipMethod,logisticsId){
+  const fit=getBaseServiceFit(logistics,product,qty);
+  if(product.urgency==="urgent"&&logistics.tier==="economy"){
+    const handlingSat={priority:-1,standard:-3,regular:-5}[shipMethod];
+    if(handlingSat!==undefined) return {...fit,handlingSat};
+  }
+  if(!isLargeProduct(product)&&!isHeavyOrder(product,qty)){
+    const categoryMatched=logistics.serviceExpertise.includes(product.category);
+    if(logisticsId==="sf") return {...fit,handlingSat:2,riskMult:categoryMatched?fit.riskMult:.6};
+    if(logisticsId==="jd") return {...fit,handlingSat:1,riskMult:categoryMatched?fit.riskMult:.72};
+  }
+  return fit;
+}
+function getCostFit(logistics,product,qty){
+  const heavy=isHeavyOrder(product,qty);
+  if(logistics.tier==="premium"&&(isLowMargin(product)||qty>100||heavy)) return {level:"bad", text:"成本风险高：高价物流不适合薄利/多件/重货订单", extraRate:.06};
+  if(logistics.tier==="bulk"&&!heavy&&product.weightPerUnit<1) return {level:"warn", text:"成本一般：德邦适合重货，轻小件未必划算", extraRate:.02};
+  if(logistics.tier==="economy"&&isHighValue(product)) return {level:"bad", text:"风险成本高：便宜物流用于高价值商品，丢损赔付可能吞掉毛利", extraRate:.04};
+  if(logistics.tier==="economy"&&product.urgency==="urgent") return {level:"warn", text:"时效风险：低价物流用于紧急订单", extraRate:.02};
+  if(logistics.tier==="bulk"&&heavy) return {level:"good", text:"成本适配：重货/大件订单优先", extraRate:0};
+  if((logistics.tier==="standard"||logistics.tier==="economy")&&!isHighValue(product)&&!heavy) return {level:"good", text:"成本适配：普通轻小件/多件订单", extraRate:0};
+  if(logistics.tier==="premium"&&isHighValue(product)&&!heavy) return {level:"good", text:"成本可接受：高价值小批量订单", extraRate:0};
+  return {level:"neutral", text:"成本中性：结合毛利和总重量判断", extraRate:0};
+}
+function getPackFit(packType,product,qty){
+  const rec=product.recPack, heavy=isHeavyOrder(product,qty), high=isHighValue(product), fresh=product.category==="生鲜食品";
+  const fashionChoice=product.category==="服装鞋帽"&&["carton","eco"].includes(packType);
+  const premiumChoice=(high||product.category==="美妆个护")&&["shock","eco"].includes(packType);
+  let level="wrong", severity=1, sat=-4, riskMult=1.45, text=`包装适配不足：${packName(packType)}的保护能力不足`;
+  if(fashionChoice){level="best"; severity=0; sat=2; riskMult=.6; text=`服装鞋帽选用${packName(packType)}，包装适配良好`;}
+  else if(premiumChoice){level="best"; severity=0; sat=packType==="eco"?2:1; riskMult=.72; text=`包装正确：${packName(packType)}`;}
+  else if(packType===rec){level="best"; severity=0; sat=Math.min(1, PACK_TYPES[packType].satBase+1); riskMult=.72; text=`包装正确：${packName(packType)}`;}
+  else if(packType==="eco"&&!heavy&&!fresh&&!high){level="upgrade"; severity=0; sat=2; riskMult=.86; text="绿色环保包装提升客户感知，但成本更高";}
+  else if(packType==="shock"&&high){level="upgrade"; severity=0; sat=1; riskMult=.76; text="防震升级适合高价值商品";}
+  else if(packType==="foam"&&fresh){level="minor"; severity=1; sat=-2; riskMult=1.05; text="泡沫箱可部分保护生鲜，但不如冷链保温箱";}
+  else if(packType==="wooden"&&heavy){level="best"; severity=0; sat=1; riskMult=.74; text="木架/木箱适合大件重货";}
+  if(heavy&&!['wooden'].includes(packType)&&!fashionChoice&&!premiumChoice) {level="critical"; severity=3; sat=-8; riskMult=2.05; text=`严重包装问题：${packName(packType)}对大件/重货保护不足`;}
+  if(fresh&&!['cold','foam'].includes(packType)&&!premiumChoice) {level="critical"; severity=3; sat=-8; riskMult=2.10; text=`严重包装问题：生鲜运输保护不足`;}
+  if(high&&packType==="bag") {level="critical"; severity=3; sat=-8; riskMult=2.15; text=`严重包装问题：高价值商品保护不足`;}
+  if(level==="wrong"&&packType!==rec){severity=2; sat=-5; riskMult=1.65;}
+  const cost=100*PACK_TYPES[packType].materialFactor+qty*PACK_BASE_COST[getPackClass(product)]*getQtyShareFactor(qty);
+  return {packType,rec,level,severity,sat,riskMult,text,cost,protection:PACK_TYPES[packType].protection};
+}
+function computeFreight(bid,product,qty,logistics){
+  const totalWeight=product.weightPerUnit*qty; let unitPrice=bid.bidPrice;
+  if(game.todayCustomerRegion==="remote"&&bid.remoteSurcharge==="yes") unitPrice*=bid.priceMethod==="weight"?1.35:1.18;
+  let freight=bid.priceMethod==="weight"?totalWeight*unitPrice:qty*unitPrice;
+  if(bid.shipMethod==="regular") freight*=1.1; if(bid.shipMethod==="priority") freight*=1.3;
+  const sellerFreightCost=bid.isFreeShip==="yes"?freight:freight*.12, customerFreightPaid=bid.isFreeShip==="yes"?0:freight*.88;
+  return {freight,sellerFreightCost,customerFreightPaid,totalWeight};
+}
+function getSpeedSat(actualDays, product, eventType){
+  if(eventType==="delay") return product.urgency==="urgent"?-6:-4;
+  const expect={urgent:2,normal:4,relax:6}[product.urgency];
+  if(actualDays<=Math.max(1,expect-1.2)) return 4;
+  if(actualDays<=expect) return 3;
+  if(actualDays<=expect+1) return 1;
+  if(actualDays<=expect+2) return -1;
+  return -3;
+}
+function getUrgentShipPenalty(product,shipMethod){
+  if(product.urgency!=="urgent") return 0;
+  const chances=shipMethod==="standard"?{large:.9,small:1}:shipMethod==="regular"?{large:.7,small:.8}:null;
+  if(!chances) return 0;
+  if(Math.random()<chances.large) return -8;
+  return Math.random()<chances.small?-2:0;
+}
+function getUrgentPriorityBonus(product,shipMethod){
+  if(product.urgency!=="urgent"||shipMethod!=="priority") return 0;
+  return Math.random()<.9?6:2;
+}
+function simulateTransport(logistics,bid,product,qty,pack,serviceFit){
+  const minRequired=bid.priceMethod==="weight"?logistics.minPriceWeight:logistics.minPricePiece, priceRatio=bid.bidPrice/minRequired;
+  let riskMult=priceRatio<1?1+(1-priceRatio)*2.5:1; if(priceRatio>=1.35) riskMult*=.9;
+  riskMult*=serviceFit.riskMult*pack.riskMult;
+  if(bid.shipMethod==="standard") riskMult*=1.45; if(product.urgency==="urgent"&&bid.shipMethod==="standard") riskMult*=1.35;
+  if(game.todayCustomerRegion==="remote"&&bid.remoteSurcharge!=="yes") riskMult*=1.6;
+  if(isHighValue(product)) riskMult*=(1.1+(1-logistics.security));
+  riskMult=Math.min(4.2,Math.max(.50,riskMult));
+  let delayProb=logistics.delayProb*riskMult, lossProb=logistics.lossProb*riskMult, damageProb=logistics.damageProb*riskMult;
+  if(pack.level==="danger") damageProb*=1.85; if(product.category==="生鲜食品") {delayProb*=1.25; damageProb*=1.35;} if(isHeavyOrder(product,qty)) damageProb*=1.25;
+  const baseDays=logistics.baseDays+(bid.shipMethod==="priority"?0:bid.shipMethod==="regular"?1:3);
+  let actualDays=baseDays, extraCost=0, eventMsg="运输正常", eventType="normal"; const rand=Math.random();
+  if(rand<lossProb){const lossValue=product.pricePerUnit*qty*randFloat(.35,.75);extraCost+=lossValue;eventType="loss";eventMsg=`货物丢失/错发，赔付 ${yuan(lossValue)} 元。`;}
+  else if(rand<lossProb+damageProb){const damageValue=product.pricePerUnit*qty*randFloat(.18,.45);extraCost+=damageValue;eventType="damage";eventMsg=`包装或运输导致损坏，售后赔付 ${yuan(damageValue)} 元。`;}
+  else if(rand<lossProb+damageProb+delayProb){const delayDays=randomInt(2,6);actualDays+=delayDays;eventType="delay";eventMsg=`配送延误 ${delayDays} 天。`;}
+  else if(rand<lossProb+damageProb+delayProb+logistics.earlyProb/Math.max(1,riskMult)){const earlyDays=randomInt(1,2);actualDays=Math.max(1,baseDays-earlyDays);eventType="early";eventMsg=`提前 ${earlyDays} 天送达。`;}
+  else{actualDays+=(Math.random()-.5)*1.2;eventMsg=actualDays<=({urgent:2,normal:4,relax:6}[product.urgency])?"按预期送达。":"略慢于预期。";}
+  let speedSat=getSpeedSat(actualDays,product,eventType); if(eventType==="loss") speedSat=-10; if(eventType==="damage") speedSat=-7;
+  return {actualDays,extraCost,eventMsg,eventType,riskMult,speedSat};
+}
+
+function controlSatisfactionChange(rawChange, scoreItems){
+  let controlled=rawChange;
+  let note="";
+  if(rawChange>0){
+    const debt=game.satisfactionDebt||0;
+    const debtCap=debt>0?Math.max(1,Math.floor(debt/2)):2;
+    controlled=Math.min(rawChange, debtCap, 4);
+    if(controlled<rawChange){note=`满意度恢复受限：原本可回升 +${rawChange}，但历史下降债务为 ${debt}，本次最多回升 +${controlled}`;}
+    game.satisfactionDebt=Math.max(0, debt-controlled*2);
+  }else if(rawChange<0){
+    game.satisfactionDebt=(game.satisfactionDebt||0)+Math.abs(rawChange);
+  }
+  return {change:controlled,note};
+}
+function getSatisDescription(change){if(change>=5)return"明显提升";if(change>0)return"小幅提升";if(change===0)return"无明显变化";if(change>=-2)return"小幅下降";if(change>=-5)return"明显下降";return"严重下降";}
+function settleDay(){
+  if(!game.awaitingConfirm||!game.pendingBid)return false;
+  const bid=game.pendingBid, product=game.todayProduct, qty=game.todayQty, logistics=LOGISTICS[bid.logisticsId];
+  Object.keys(LOGISTICS).forEach(id=>{consecutiveMiss[id]=id===bid.logisticsId?0:(consecutiveMiss[id]||0)+1;});
+  const econ=getProductEconomics(product,qty), pack=getPackFit(bid.packType,product,qty), freight=computeFreight(bid,product,qty,logistics), serviceFit=getServiceFit(logistics,product,qty,bid.shipMethod,bid.logisticsId), costFit=getCostFit(logistics,product,qty), transport=simulateTransport(logistics,bid,product,qty,pack,serviceFit);
+  const costRiskPenalty=econ.grossProfit*costFit.extraRate;
+  const insuranceCost=isHighValue(product)?econ.salesRevenue*(logistics.tier==="premium"?.003:logistics.tier==="standard"?.006:.011):0;
+  const finalProfit=econ.grossProfit-freight.sellerFreightCost-pack.cost-transport.extraCost-costRiskPenalty-insuranceCost;
+  let freeShipSat=0; if(bid.isFreeShip==="no") freeShipSat=-randomInt(2,5);
+  const mismatchPenalty=(serviceFit.severity||0)+(pack.severity||0)>=4?-3:(serviceFit.severity||0)+(pack.severity||0)===3?-2:0;
+  let rawSatisChange=transport.speedSat+serviceFit.handlingSat+pack.sat+freeShipSat+mismatchPenalty;
+  if(transport.eventType==="normal"&&logistics.tier==="premium"&&product.urgency!=="relax"&&(serviceFit.severity||0)===0) rawSatisChange+=1;
+  rawSatisChange=Math.max(-20,Math.min(8,rawSatisChange));
+  if(bid.isFreeShip==="no"){rawSatisChange=Math.min(rawSatisChange,freeShipSat);game.noFreeShipDays++;}
+  const satisControl=controlSatisfactionChange(rawSatisChange);
+  const urgentShipChange=getUrgentShipPenalty(product,bid.shipMethod)+getUrgentPriorityBonus(product,bid.shipMethod);
+  let totalSatisChange=Math.max(-20,Math.min(8,satisControl.change+urgentShipChange));
+  const appliedShipChange=totalSatisChange-satisControl.change;
+  if(appliedShipChange<0) game.satisfactionDebt=(game.satisfactionDebt||0)-appliedShipChange;
+  else if(appliedShipChange>0) game.satisfactionDebt=Math.max(0,(game.satisfactionDebt||0)-appliedShipChange*2);
+  const previousSatisfaction=game.satisfaction;
+  game.money+=finalProfit; game.totalProfit+=finalProfit; if(finalProfit<0)game.lossDays++; if(["loss","damage"].includes(transport.eventType))game.damageEvents++; game.satisfaction=Math.max(0,Math.min(100,game.satisfaction+totalSatisChange));
+  const appliedSatisChange=game.satisfaction-previousSatisfaction;
+  game.roundResults[game.currentDay-1]={profit:finalProfit,satis:appliedSatisChange,product:product.name,logistics:logistics.name,urgency:product.urgency,shipMethod:bid.shipMethod,packSeverity:pack.severity,serviceSeverity:serviceFit.severity||0,costFitLevel:costFit.level,freeShip:bid.isFreeShip==="yes",eventType:transport.eventType};
+  renderLiveScore();
+  const shippingText=bid.isFreeShip==="yes"?`商家承担 ${yuan(freight.sellerFreightCost)} 元`:`顾客承担约 ${yuan(freight.customerFreightPaid)} 元，商家承担协同成本 ${yuan(freight.sellerFreightCost)} 元`;
+  document.getElementById("summaryContent").innerHTML=`
+    <p><strong>${game.shopName}</strong> 第${game.currentDay}天：${product.name} × ${qty}件</p>
+    <div class="summary-grid"><div class="summary-cell"><b>销售额</b><strong>+${yuan(econ.salesRevenue)} 元</strong></div><div class="summary-cell"><b>采购成本</b><strong style="color:#c0392b;">-${yuan(econ.productCost)} 元</strong></div><div class="summary-cell"><b>商品毛利</b><strong>+${yuan(econ.grossProfit)} 元（${pct(econ.grossMarginRate)}）</strong></div><div class="summary-cell"><b>物流成本</b><strong style="color:#c0392b;">-${yuan(freight.sellerFreightCost)} 元</strong></div><div class="summary-cell"><b>包装成本</b><strong style="color:#c0392b;">-${yuan(pack.cost)} 元</strong></div><div class="summary-cell"><b>保险/风控成本</b><strong style="color:#c0392b;">-${yuan(insuranceCost+costRiskPenalty)} 元</strong></div><div class="summary-cell"><b>额外损失</b><strong style="color:#c0392b;">-${yuan(transport.extraCost)} 元</strong></div><div class="summary-cell"><b>当日利润</b><strong style="color:${finalProfit>=0?'green':'#c0392b'};">${finalProfit>=0?'+':''}${yuan(finalProfit)} 元</strong></div></div>
+    <p>🚚 物流：${logistics.name}；${shippingText}</p><p>📦 包装：${packName(bid.packType)}</p><p>📌 运输状态：${transport.eventMsg}</p>
+    <div class="score-breakdown"><strong>满意度结果：</strong>本日变化 <b style="color:${appliedSatisChange>=0?'green':'#c0392b'};">${appliedSatisChange>=0?'+':''}${appliedSatisChange}</b>，当前满意度 ${Math.floor(game.satisfaction)} / 100（${getSatisDescription(appliedSatisChange)}）</div>`;
+  document.getElementById("dailySummaryModal").style.display="flex";
+  const log=`Day${game.currentDay} | ${product.name}×${qty} | ${logistics.name} | 毛利${yuan(econ.grossProfit)} | 利润${finalProfit>=0?'+':''}${yuan(finalProfit)} | 满意度${appliedSatisChange>=0?'+':''}${appliedSatisChange} | 包装${packName(bid.packType)}`;
+  game.dailyLogs.unshift(log); updateHistoryLog(); renderRoundBoard();
+  if(game.money<0){game.finished=true;game.failed=true;setTimeout(()=>showFinalResult(),300);return false;}
+  game.currentDay++; game.awaitingConfirm=false; game.pendingBid=null;
+  if(game.currentDay>TOTAL_DAYS){game.finished=true;setTimeout(()=>showFinalResult(),300);updateDashboard();return true;}
+  loadCurrentDay(); updateLogisticsPrices(); checkAndRaisePrice(); renderTodayProduct(); renderLogistics(); document.getElementById("logisticsSection").style.display="block"; document.getElementById("confirmSection").style.display="none"; updateDashboard(); renderRoundBoard(); return true;
+}
+function updateLogisticsPrices(){if(game.currentDay%5!==0||game.currentDay<=0)return;Object.keys(LOGISTICS).forEach(id=>{if(consecutiveMiss[id]>=5){const old=LOGISTICS[id].minPriceWeight;LOGISTICS[id].minPriceWeight=Math.max(RAW_LOGISTICS[id].minPriceWeight*.72,LOGISTICS[id].minPriceWeight*.96);LOGISTICS[id].minPricePiece=Math.max(RAW_LOGISTICS[id].minPricePiece*.72,LOGISTICS[id].minPricePiece*.96);LOGISTICS[id].basePriceWeight=LOGISTICS[id].minPriceWeight*1.18;LOGISTICS[id].basePricePiece=LOGISTICS[id].minPricePiece*1.18;if(LOGISTICS[id].minPriceWeight<old)showToast(`📉 ${LOGISTICS[id].name} 长期无单，底价下调4%。`,false);consecutiveMiss[id]=0;}});}
+function checkAndRaisePrice(){if(priceIncreaseFlag)return;if(game.money>=initialMoney*1.8){Object.keys(LOGISTICS).forEach(id=>{LOGISTICS[id].basePriceWeight*=1.16;LOGISTICS[id].basePricePiece*=1.16;LOGISTICS[id].minPriceWeight*=1.16;LOGISTICS[id].minPricePiece*=1.16;});priceIncreaseFlag=true;showToast("📈 店铺规模扩大，物流供应商整体涨价16%。",false);}}
+function attemptBid(logiId,ship,priceM,bidPrice,freeShip,remote,packType){
+  const logi=LOGISTICS[logiId], minReq=priceM==="weight"?logi.minPriceWeight:logi.minPricePiece;
+  if(!packType){alert("请选择包装方式");return false;}
+  if(bidPrice<minReq*.8){
+    if(Math.random()<.55){alert(`❌ 报价过低！${logi.name} 拒绝接单。`);return false;}
+  }
+  game.pendingBid={logisticsId:logiId,shipMethod:ship,priceMethod:priceM,bidPrice,isFreeShip:freeShip,remoteSurcharge:remote,packType}; game.awaitingConfirm=true; document.getElementById("logisticsSection").style.display="none"; document.getElementById("confirmSection").style.display="block"; updateDashboard(); return true;
+}
+function cancelBidAndReturn(){if(game.awaitingConfirm){game.awaitingConfirm=false;game.pendingBid=null;document.getElementById("logisticsSection").style.display="block";document.getElementById("confirmSection").style.display="none";renderLogistics();showToast("已取消当前方案，可重新选择。",false);}}
+function renderTodayProduct(){
+  const p=game.todayProduct;if(!p)return; const qty=game.todayQty,econ=getProductEconomics(p,qty),urgencyText={urgent:"紧急",normal:"普通",relax:"宽松"}[p.urgency];
+  document.getElementById("todayProductCard").innerHTML=`<div class="product-head"><div><div class="product-name">${p.name}<span class="badge">${p.category}</span></div></div><div style="text-align:right;color:#5f543d;font-weight:900;">${game.todayCustomerRegion==="remote"?"偏远地区":"普通地区"}<br>${urgencyText}订单</div></div><div class="product-metrics"><div class="metric"><b>售价/件</b><strong>¥${p.pricePerUnit.toFixed(2)}</strong></div><div class="metric"><b>采购成本/件</b><strong>¥${p.costPerUnit.toFixed(2)}</strong></div><div class="metric"><b>毛利率</b><strong>${pct(econ.grossMarginRate)}</strong></div><div class="metric"><b>订单数量</b><strong>${qty} 件</strong></div><div class="metric"><b>总销售额</b><strong>¥${yuan(econ.salesRevenue)}</strong></div><div class="metric"><b>预计商品毛利</b><strong>¥${yuan(econ.grossProfit)}</strong></div><div class="metric"><b>总重量</b><strong>${econ.totalWeight.toFixed(1)} kg</strong></div></div>`;
+}
+function renderLogistics(){
+  const container=document.getElementById("logisticsGrid");container.innerHTML="";const p=game.todayProduct;if(!p)return;
+  Object.entries(LOGISTICS).forEach(([id,l])=>{const card=document.createElement("div");card.className=`logi-card ${l.tier}`;card.innerHTML=`<div class="logi-name">${l.name}</div><div class="logi-tags"><span class="tag blue">特快基础时效：约${l.baseDays}天</span></div><div class="logi-desc"><b>按重量最低报价：</b>¥${l.minPriceWeight.toFixed(1)}/kg</div><div class="logi-desc"><b>按件最低报价：</b>¥${l.minPricePiece.toFixed(1)}/件</div><button class="btn-bid" data-id="${id}">✍️ 制定物流方案</button>`;container.appendChild(card);});
+  document.querySelectorAll(".btn-bid").forEach(btn=>{btn.onclick=()=>{if(game.awaitingConfirm||game.finished)return alert("请先完成当日运营，或返回重新选择。 ");openBidModal(btn.getAttribute("data-id"));};});
+}
+function updateLowPriceWarning(){
+  if(!currentBidId)return;
+  const l=LOGISTICS[currentBidId], byWeight=document.getElementById("priceMethod").value==="weight";
+  const minPrice=byWeight?l.minPriceWeight:l.minPricePiece, bidPrice=parseFloat(document.getElementById("bidPrice").value);
+  document.getElementById("lowPriceWarning").textContent=Number.isFinite(bidPrice)&&bidPrice<minPrice*.8?"报价低于最低报价的80%，有55%概率被拒单。":"";
+}
+function updateBidModalQuote(resetPrice){
+  if(!currentBidId)return;
+  const l=LOGISTICS[currentBidId], byWeight=document.getElementById("priceMethod").value==="weight";
+  const minPrice=byWeight?l.minPriceWeight:l.minPricePiece, unit=byWeight?"kg":"件";
+  const shipMethod=document.getElementById("shipMethod").value, extraDays=shipMethod==="priority"?0:shipMethod==="regular"?1:3;
+  document.getElementById("minPriceTip").textContent=`(最低报价：¥${minPrice.toFixed(1)}/${unit}；所选方式基础时效约 ${(l.baseDays+extraDays).toFixed(1)} 天)`;
+  if(resetPrice)document.getElementById("bidPrice").value=minPrice.toFixed(1);
+  updateLowPriceWarning();
+}
+function openBidModal(id){
+  currentBidId=id;
+  document.getElementById("modalLogiName").textContent=LOGISTICS[id].name;
+  document.getElementById("packType").value="";
+  updateBidModalQuote(true);
+  document.getElementById("bidModal").style.display="flex";
+}
+function closeModal(){document.getElementById("bidModal").style.display="none";}
+function renderRoundBoard(){const grid=document.getElementById("roundGrid");grid.innerHTML="";for(let i=1;i<=TOTAL_DAYS;i++){const div=document.createElement("div");div.className="round-cell ";if(i<game.currentDay||game.roundResults[i-1]){const r=game.roundResults[i-1];div.className+=`done ${r&&r.profit>=0?'profit':'loss'}`;div.title=r?`Day${i} ${r.product}｜${r.logistics}｜利润${yuan(r.profit)}｜满意度${r.satis>=0?'+':''}${r.satis}`:`Day${i} 已完成`; } else if(i===game.currentDay){div.className+="current";div.title=`Day${i} 当前回合`; } else {div.className+="future";div.title=`Day${i} 未进行`; } div.textContent=i;grid.appendChild(div);} document.getElementById("roundBoardTip").textContent=`当前第 ${Math.min(game.currentDay,TOTAL_DAYS)} / ${TOTAL_DAYS} 天｜绿色=盈利，红色=亏损，黄色=当前`;}
+function updateDashboard(){document.getElementById("money").innerText=yuan(game.money);document.getElementById("satisfaction").innerText=Math.floor(game.satisfaction);document.getElementById("day").innerText=Math.min(game.currentDay,TOTAL_DAYS);document.getElementById("todayQty").innerText=game.todayQty||0;document.getElementById("runIdDash").innerText=game.runId||"-";if(game.todayProduct){const econ=getProductEconomics(game.todayProduct,game.todayQty);document.getElementById("grossProfitDash").innerText=yuan(econ.grossProfit);document.getElementById("totalWeightDash").innerText=econ.totalWeight.toFixed(1);}else{document.getElementById("grossProfitDash").innerText="0";document.getElementById("totalWeightDash").innerText="0";}}
+function updateHistoryLog(){document.getElementById("historyLog").innerHTML=game.dailyLogs.length?game.dailyLogs.slice(0,15).join("<br>"):"等待开始...";}
+function getScoreBreakdown(){
+  const moneyScore=Math.max(0,Math.min(100,(Math.floor(game.money)/initialMoney)*70));
+  const satisfactionScore=Math.floor(game.satisfaction);
+  const riskScore=Math.max(0,100-game.lossDays*6-game.damageEvents*10-game.noFreeShipDays*2);
+  const totalScore=Math.round(moneyScore*.6+satisfactionScore*.3+riskScore*.1);
+  return {moneyScore,satisfactionScore,riskScore,totalScore};
+}
+function renderLiveScore(){
+  const completedDays=game.roundResults.filter(Boolean).length;
+  const content=document.getElementById("liveScoreContent");
+  if(!completedDays){document.getElementById("liveScoreRound").textContent="完成首轮后更新";content.className="live-score-empty";content.textContent="完成首轮运营后显示评分。";return;}
+  const {moneyScore,satisfactionScore,riskScore,totalScore}=getScoreBreakdown();
+  document.getElementById("liveScoreRound").textContent=`已结算 ${completedDays} / ${TOTAL_DAYS} 轮`;
+  content.className="";
+  content.innerHTML=`<div class="live-score-total"><div><b>当前综合成绩</b><small>资金 60% · 满意度 30% · 风险控制 10%</small></div><strong>${totalScore}<em>分</em></strong></div><div class="live-score-grid"><div class="live-score-item"><b>资金贡献</b><strong>${(moneyScore*.6).toFixed(1)} / 60</strong></div><div class="live-score-item"><b>满意度贡献</b><strong>${(satisfactionScore*.3).toFixed(1)} / 30</strong></div><div class="live-score-item"><b>风险控制贡献</b><strong>${(riskScore*.1).toFixed(1)} / 10</strong></div></div>`;
+}
+function renderFinalReview(){
+  const target=document.getElementById("finalReview");
+  const rounds=game.roundResults.filter(Boolean);
+  if(game.failed||rounds.length!==TOTAL_DAYS){target.innerHTML="";return;}
+  const count=test=>rounds.filter(test).length;
+  const profitable=count(r=>r.profit>=0), packGood=count(r=>r.packSeverity===0), packBad=count(r=>r.packSeverity>0);
+  const urgent=count(r=>r.urgency==="urgent"), urgentPriority=count(r=>r.urgency==="urgent"&&r.shipMethod==="priority");
+  const serviceBad=count(r=>r.serviceSeverity>0), costBad=count(r=>r.costFitLevel==="bad");
+  const freeShip=count(r=>r.freeShip), accidents=count(r=>r.eventType==="loss"||r.eventType==="damage");
+  const negativeSatis=count(r=>r.satis<0);
+  const strengths=[];
+  if(profitable>0)strengths.push({rank:profitable/TOTAL_DAYS,text:`${profitable}/30 天盈利，说明部分订单的毛利与履约成本配置有效。`});
+  if(packGood>0)strengths.push({rank:packGood/TOTAL_DAYS,text:`${packGood}/30 天包装适配，商品保护与客户体验兼顾。`});
+  if(urgentPriority>0)strengths.push({rank:urgentPriority/Math.max(1,urgent),text:`${urgentPriority}/${urgent} 笔急件选择特快，重视了时效需求。`});
+  if(freeShip>0)strengths.push({rank:freeShip/TOTAL_DAYS,text:`${freeShip}/30 天包邮，降低了顾客下单时的运费阻力。`});
+  if(accidents<=3)strengths.push({rank:1-accidents/TOTAL_DAYS,text:`30 天中丢损事故 ${accidents} 天，履约风险总体受控。`});
+  strengths.sort((a,b)=>b.rank-a.rank);
+  const issues=[];
+  if(TOTAL_DAYS-profitable>0)issues.push({rank:(TOTAL_DAYS-profitable)/TOTAL_DAYS,text:`${TOTAL_DAYS-profitable} 天亏损；报价前核对商品毛利、包装费和商家承担的运费。`,strategy:"先按订单毛利筛选物流与包装方案，再确定包邮及报价，守住单单盈利。"});
+  if(packBad>0)issues.push({rank:packBad/TOTAL_DAYS+0.1,text:`${packBad} 天包装不适配；生鲜、易碎及大件应优先匹配保护需求。`,strategy:"按商品风险选包装：生鲜重保温，高价值重防震，大件重加固。"});
+  if(urgent>urgentPriority)issues.push({rank:(urgent-urgentPriority)/urgent+0.1,text:`${urgent-urgentPriority}/${urgent} 笔急件未选特快；急件应优先保障时效。`,strategy:"急件先满足时效，再在可达标的物流方案中比较报价与服务。"});
+  if(serviceBad>0)issues.push({rank:serviceBad/TOTAL_DAYS+0.05,text:`${serviceBad} 天物流服务与商品不适配；按品类、体积和时效选承运商。`,strategy:"将商品分为急件、高价值、普通件和大件，分别制定物流选择规则。"});
+  if(costBad>0)issues.push({rank:costBad/TOTAL_DAYS,text:`${costBad} 天物流成本适配较差；薄利订单尤其要控制高价服务支出。`,strategy:"对薄利和多件订单比较按件与按重量报价，避免运费吞掉毛利。"});
+  if(accidents>3)issues.push({rank:accidents/TOTAL_DAYS+0.05,text:`${accidents} 天发生丢损；高风险订单需强化包装和承运商筛选。`,strategy:"对易损、高价值订单优先配置可靠物流与防护包装，减少售后赔付。"});
+  if(negativeSatis>0)issues.push({rank:negativeSatis/TOTAL_DAYS,text:`${negativeSatis} 天满意度下降；重点复盘时效、包装及包邮体验。`,strategy:"把满意度下降的订单按时效、包装和运费体验复盘，优先修复高频问题。"});
+  if(freeShip<TOTAL_DAYS)issues.push({rank:(TOTAL_DAYS-freeShip)/TOTAL_DAYS*.5,text:`${TOTAL_DAYS-freeShip} 天未包邮；核算毛利后尽量减少顾客运费负担。`,strategy:"在毛利允许时优先包邮，并通过报价和包装成本优化维持利润。"});
+  issues.sort((a,b)=>b.rank-a.rank);
+  const good=strengths.slice(0,2).map(item=>item.text).join(" ")||"已完成30天订单决策，积累了可复盘的经营记录。";
+  const improve=issues.slice(0,2).map(item=>item.text).join(" ")||"主要指标稳定，可继续按商品毛利与履约风险微调方案。";
+  const next=issues[0]?.strategy||"延续有效的物流与包装配置，持续比较单笔利润和顾客体验。";
+  target.innerHTML=`<div class="final-review"><h3>📝 运营总结</h3><div class="final-review-item"><b>做得好的地方：</b>${good}</div><div class="final-review-item"><b>优先改进：</b>${improve}</div><div class="final-review-item"><b>下轮策略：</b>${next}</div></div>`;
+}
+function showFinalResult(){
+  const finalMoney=Math.floor(game.money), profit=finalMoney-initialMoney, finalSatis=Math.floor(game.satisfaction);
+  const profitRate=initialMoney>0?profit/initialMoney:0;
+  const {totalScore}=getScoreBreakdown();
+  const completedDays=game.roundResults.filter(Boolean).length;
+  const avgProfit=completedDays?profit/completedDays:0;
+  const profitClass=profit>=0?'green':'red';
+  const title=game.failed?"💥 店铺破产":"🏆 30天竞赛最终结算 🏆";
+  document.getElementById("dailySummaryModal").style.display="none";
+  document.getElementById("bidModal").style.display="none";
+  document.getElementById("finalTitle").innerHTML=title;
+  document.getElementById("finalShopName").innerHTML=`🏪 店铺：${game.shopName}｜随机批次：${game.runId}`;
+  document.getElementById("finalProfit").innerHTML=`💰 运营金额：${yuan(finalMoney)} 元｜总利润：<span style="color:${profit>=0?'#237044':'#c0392b'};font-weight:900;">${profit>=0?'+':''}${yuan(profit)} 元</span>`;
+  document.getElementById("finalSatisfaction").innerHTML=`😊 最终满意度：${finalSatis} / 100｜完成回合：${completedDays} / ${TOTAL_DAYS}`;
+  document.getElementById("finalScore").innerHTML=`
+    <div class="final-dashboard">
+      <div style="font-weight:950;color:#173d2a;font-size:1.05rem;">📊 最终成绩看板</div>
+      <div class="final-kpi-grid">
+        <div class="final-kpi"><b>初始资金</b><strong>${yuan(initialMoney)} 元</strong></div>
+        <div class="final-kpi"><b>最终运营金额</b><strong class="${finalMoney>=initialMoney?'green':'red'}">${yuan(finalMoney)} 元</strong></div>
+        <div class="final-kpi"><b>总利润</b><strong class="${profitClass}">${profit>=0?'+':''}${yuan(profit)} 元</strong></div>
+        <div class="final-kpi"><b>利润率</b><strong class="${profitClass}">${(profitRate*100).toFixed(1)}%</strong></div>
+        <div class="final-kpi"><b>最终满意度</b><strong class="blue">${finalSatis} / 100</strong></div>
+        <div class="final-kpi"><b>综合成绩</b><strong class="blue">${totalScore} 分</strong></div>
+        <div class="final-kpi"><b>亏损天数</b><strong class="${game.lossDays>0?'red':'green'}">${game.lossDays} 天</strong></div>
+        <div class="final-kpi"><b>事故天数</b><strong class="${game.damageEvents>0?'red':'green'}">${game.damageEvents} 天</strong></div>
+        <div class="final-kpi"><b>不包邮天数</b><strong>${game.noFreeShipDays} 天</strong></div>
+        <div class="final-kpi"><b>日均利润</b><strong class="${avgProfit>=0?'green':'red'}">${avgProfit>=0?'+':''}${yuan(avgProfit)} 元/天</strong></div>
+      </div>
+      <div class="final-note">评分口径：资金表现 60% + 满意度 30% + 风险控制 10%。风险控制会受到亏损天数、事故天数和不包邮天数影响。</div>
+    </div>`;
+  renderFinalReview();
+  document.getElementById("finalModal").style.display="flex";
+}
+function startGame(shopName,money){initialMoney=money;LOGISTICS=JSON.parse(JSON.stringify(RAW_LOGISTICS));consecutiveMiss={};Object.keys(LOGISTICS).forEach(id=>consecutiveMiss[id]=0);priceIncreaseFlag=false;game={shopName,money,satisfaction:100,currentDay:1,finished:false,failed:false,dailyLogs:[],todayProduct:null,todayQty:0,todayCustomerRegion:"normal",pendingBid:null,awaitingConfirm:false,scenario:[],roundResults:Array(TOTAL_DAYS).fill(null),correctStreak:0,totalProfit:0,lossDays:0,noFreeShipDays:0,damageEvents:0,satisfactionDebt:0,runId:makeRunId()};buildProductLibrary();game.scenario=createScenario();loadCurrentDay();renderTodayProduct();renderLogistics();updateDashboard();renderRoundBoard();updateHistoryLog();document.getElementById("shopNameDisplay").innerHTML=`${shopName} · 随机批次 ${game.runId}`;document.getElementById("logisticsSection").style.display="block";document.getElementById("confirmSection").style.display="none";}
+document.getElementById("startGameBtn").onclick=()=>{const name=document.getElementById("shopNameInput").value.trim()||"我的店铺";let money=parseFloat(document.getElementById("startMoney").value);if(isNaN(money)||money<1000)money=100000;startGame(name,money);document.getElementById("startModal").style.display="none";};
+document.getElementById("closeModalBtn").onclick=closeModal;document.getElementById("priceMethod").onchange=()=>updateBidModalQuote(true);document.getElementById("shipMethod").onchange=()=>updateBidModalQuote(false);document.getElementById("bidPrice").oninput=updateLowPriceWarning;document.getElementById("submitBidBtn").onclick=()=>{if(!currentBidId)return;const ship=document.getElementById("shipMethod").value,priceM=document.getElementById("priceMethod").value,bidPrice=parseFloat(document.getElementById("bidPrice").value),freeShip=document.getElementById("isFreeShip").value,remote=document.getElementById("remoteSurcharge").value,pack=document.getElementById("packType").value;if(isNaN(bidPrice)||bidPrice<=0){alert("请输入有效报价");return;} if(attemptBid(currentBidId,ship,priceM,bidPrice,freeShip,remote,pack))closeModal();};
+document.getElementById("confirmDayBtn").onclick=()=>{if(game.awaitingConfirm&&!game.finished)settleDay();updateDashboard();renderRoundBoard();};document.getElementById("backToSelectBtn").onclick=cancelBidAndReturn;document.getElementById("resetGameBtn").onclick=()=>location.reload();document.getElementById("copyResultBtn").onclick=()=>{const text=`${game.shopName}｜批次${game.runId}｜最终资金${yuan(game.money)}元｜满意度${Math.floor(game.satisfaction)}分｜亏损天数${game.lossDays}`;navigator.clipboard.writeText(text);alert("成绩已复制");};document.getElementById("closeFinalBtn").onclick=()=>location.reload();document.getElementById("closeSummaryBtn").onclick=()=>{document.getElementById("dailySummaryModal").style.display="none";};window.onclick=e=>{if(e.target===document.getElementById("bidModal"))closeModal();};
+</script>
+</body>
+</html>
